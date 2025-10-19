@@ -30,6 +30,7 @@ export interface CreatePaymentData {
   amount: number;
   currency: string;
   metadata?: Record<string, any>;
+  status: 'pending' | 'success' | 'failed';
 }
 
 export interface CreateSubscriptionData {

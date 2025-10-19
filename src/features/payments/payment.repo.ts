@@ -2,23 +2,22 @@ import { db } from '../../db';
 import { Payment, Subscription, CreatePaymentData, CreateSubscriptionData } from './payment.model';
 
 export class PaymentRepository {
-  async createPayment(data: CreatePaymentData): Promise<Payment> {
-    const query = `
-      INSERT INTO payments (tenant_id, provider_payment_id, amount, currency, metadata)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING *
-    `;
-    
-    const result = await db.query(query, [
-      data.tenant_id,
-      data.provider_payment_id,
-      data.amount,
-      data.currency,
-      JSON.stringify(data.metadata),
-    ]);
-    
-    return result.rows[0];
-  }
+async createPayment(data: CreatePaymentData): Promise<Payment> {
+  const query = `
+    INSERT INTO payments (tenant_id, provider_payment_id, amount, currency, metadata, status)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING *
+  `;
+  const result = await db.query(query, [
+    data.tenant_id,
+    data.provider_payment_id,
+    data.amount,
+    data.currency,
+    JSON.stringify(data.metadata),
+    data.status,  // make sure to pass status here
+  ]);
+  return result.rows[0];
+}
 
   async updatePaymentStatus(
     providerPaymentId: string,

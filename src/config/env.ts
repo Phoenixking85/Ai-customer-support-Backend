@@ -129,12 +129,11 @@ export const config: Config = {
   },
 };
 
-// ✅ Validate Supabase envs
+
 if (!config.supabase.url || !config.supabase.serviceRoleKey) {
   throw new Error('❌ Missing Supabase environment variables');
 }
 
-// ✅ Create Supabase client
 export const supabase = createClient(config.supabase.url, config.supabase.serviceRoleKey, {
   auth: {
     autoRefreshToken: false,

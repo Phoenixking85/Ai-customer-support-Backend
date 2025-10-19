@@ -59,66 +59,75 @@ export class PaymentService {
   }
 
   async initializePayment(
-    tenantId: string,
-    request: PaymentInitRequest
-  ): Promise<PaymentInitResponse> {
-    const tenant = await this.tenantService.getTenantById(tenantId);
-    if (!tenant) {
-      throw new Error('Tenant not found');
+  tenantId: string,
+  request: PaymentInitRequest
+): Promise<PaymentInitResponse> {
+  const tenant = await this.tenantService.getTenantById(tenantId);
+  if (!tenant) {
+    throw new Error('Tenant not found');
+  }
+
+  const reference = Helpers.generateReference();
+  const amount = config.plans.premium.price; // Amount in kobo/pesewa
+
+  const paymentData = {
+    email: tenant.email,
+    amount,
+    reference,
+    currency: config.plans.premium.currency,
+    callback_url: request.callback_url,
+    metadata: {
+      tenant_id: tenantId,
+      plan: request.plan,
+    },
+  };
+
+  try {
+    const response = await this.makePaystackRequest<PaystackInitResponse>(
+      'POST',
+      '/transaction/initialize',
+      paymentData
+    );
+
+    if (!response.status) {
+      throw new Error(`Payment initialization failed: ${response.message}`);
     }
 
-    const reference = Helpers.generateReference();
-    const amount = config.plans.premium.price; // Amount in kobo/pesewa
-
-    const paymentData = {
-      email: tenant.email,
+    // Prepare data for DB insert
+    const createPaymentData: CreatePaymentData = {
+      tenant_id: tenantId,
+      provider_payment_id: reference,
       amount,
-      reference,
       currency: config.plans.premium.currency,
-      callback_url: request.callback_url,
-      metadata: {
-        tenant_id: tenantId,
-        plan: request.plan,
-      },
+      metadata: paymentData.metadata,
+      status: 'pending', // Must never be null!
     };
 
-    try {
-      const response = await this.makePaystackRequest<PaystackInitResponse>(
-        'POST',
-        '/transaction/initialize',
-        paymentData
-      );
-
-      if (!response.status) {
-        throw new Error(`Payment initialization failed: ${response.message}`);
-      }
-
-      // Create payment record
-      const createPaymentData: CreatePaymentData = {
-        tenant_id: tenantId,
-        provider_payment_id: reference,
-        amount,
-        currency: config.plans.premium.currency,
-        metadata: paymentData.metadata,
-      };
-
-      await this.paymentRepo.createPayment(createPaymentData);
-
-      logger.info('Payment initialized', {
-        tenantId,
-        reference,
-        amount,
-      });
-
-      return {
-        checkout_url: response.data.authorization_url,
-        reference: response.data.reference,
-      };
-    } catch (error) {
-      logger.error('Payment initialization failed', error);
-      throw new Error('Failed to initialize payment');
+    // Validate status
+    if (!createPaymentData.status) {
+      throw new Error('Payment status is missing');
     }
+
+    logger.debug('Creating payment with data:', createPaymentData);
+
+    await this.paymentRepo.createPayment(createPaymentData);
+
+    logger.info('Payment initialized', {
+      tenantId,
+      reference,
+      amount,
+    });
+
+    return {
+      checkout_url: response.data.authorization_url,
+      reference: response.data.reference,
+    };
+  } catch (error) {
+    logger.error('Payment initialization failed', error);
+    throw new Error('Failed to initialize payment');
   }
+}
+
 
   async verifyPayment(reference: string): Promise<{ success: boolean; message: string }> {
     try {
