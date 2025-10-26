@@ -8,7 +8,7 @@ export class VectorService {
     private geminiClient: GeminiClient
   ) {}
 
-  // Search vector DB for relevant chunks
+  
   async search(tenantId: string, query: string, limit = 5): Promise<VectorSearchResult[]> {
     const embedding = await this.geminiClient.createEmbedding(query);
     return this.vectorRepo.search(tenantId, embedding, limit);

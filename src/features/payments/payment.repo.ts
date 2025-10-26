@@ -14,7 +14,7 @@ async createPayment(data: CreatePaymentData): Promise<Payment> {
     data.amount,
     data.currency,
     JSON.stringify(data.metadata),
-    data.status,  // make sure to pass status here
+    data.status,  
   ]);
   return result.rows[0];
 }

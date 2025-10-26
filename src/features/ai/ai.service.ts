@@ -41,7 +41,6 @@ export class AIService {
       }
     ];
 
-    // 5️⃣ Generate response
     const completion = await this.geminiClient.createChatCompletion(messages, maxTokens);
 
     return {
