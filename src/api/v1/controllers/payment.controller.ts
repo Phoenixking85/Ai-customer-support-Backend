@@ -3,12 +3,10 @@ import { AuthenticatedRequest } from '../../../middleware/apiKeyAuth';
 import { PaymentService } from '../../../features/payments/payment.service';
 import { PaymentRepository } from '../../../features/payments/payment.repo';
 import { TenantService } from '../../../features/tenants/tenant.service';
-import { TenantRepository } from '../../../features/tenants/tenant.repo';
 import { paymentInitSchema } from '../validators/payment.validator';
 import { asyncHandler } from '../../../middleware/errorHandler';
 
 const paymentRepo = new PaymentRepository();
-const tenantRepo = new TenantRepository();
 const tenantService = new TenantService();
 const paymentService = new PaymentService(paymentRepo, tenantService);
 

@@ -63,16 +63,16 @@ export class PaymentService {
   request: PaymentInitRequest
 ): Promise<PaymentInitResponse> {
   const tenant = await this.tenantService.getTenantById(tenantId);
-  if (!tenant) {
-    throw new Error('Tenant not found');
-  }
+  if (!tenant) throw new Error('Tenant not found');
 
   const reference = Helpers.generateReference();
-  const amount = config.plans.premium.price; // Amount in kobo/pesewa
+  const amount = config.plans.premium.price; // still required for record
+  const planId = config.paystack.planId; // 👈 use plan ID
 
   const paymentData = {
     email: tenant.email,
     amount,
+    plan: planId, // 👈 attach plan code to Paystack
     reference,
     currency: config.plans.premium.currency,
     callback_url: request.callback_url,
@@ -82,52 +82,28 @@ export class PaymentService {
     },
   };
 
-  try {
-    const response = await this.makePaystackRequest<PaystackInitResponse>(
-      'POST',
-      '/transaction/initialize',
-      paymentData
-    );
+  const response = await this.makePaystackRequest<PaystackInitResponse>(
+    'POST',
+    '/transaction/initialize',
+    paymentData
+  );
 
-    if (!response.status) {
-      throw new Error(`Payment initialization failed: ${response.message}`);
-    }
+  if (!response.status) throw new Error(`Payment initialization failed: ${response.message}`);
 
-    // Prepare data for DB insert
-    const createPaymentData: CreatePaymentData = {
-      tenant_id: tenantId,
-      provider_payment_id: reference,
-      amount,
-      currency: config.plans.premium.currency,
-      metadata: paymentData.metadata,
-      status: 'pending', // Must never be null!
-    };
+  await this.paymentRepo.createPayment({
+    tenant_id: tenantId,
+    provider_payment_id: reference,
+    amount,
+    currency: config.plans.premium.currency,
+    metadata: paymentData.metadata,
+    status: 'pending',
+  });
 
-    // Validate status
-    if (!createPaymentData.status) {
-      throw new Error('Payment status is missing');
-    }
-
-    logger.debug('Creating payment with data:', createPaymentData);
-
-    await this.paymentRepo.createPayment(createPaymentData);
-
-    logger.info('Payment initialized', {
-      tenantId,
-      reference,
-      amount,
-    });
-
-    return {
-      checkout_url: response.data.authorization_url,
-      reference: response.data.reference,
-    };
-  } catch (error) {
-    logger.error('Payment initialization failed', error);
-    throw new Error('Failed to initialize payment');
-  }
+  return {
+    checkout_url: response.data.authorization_url,
+    reference: response.data.reference,
+  };
 }
-
 
   async verifyPayment(reference: string): Promise<{ success: boolean; message: string }> {
     try {
@@ -224,14 +200,47 @@ export class PaymentService {
   }
 
   private async handleSubscriptionCreate(data: any): Promise<void> {
-    // Handle subscription creation logic
-    logger.info('Subscription created', { data });
+  const tenantId = data.customer?.metadata?.tenant_id || data.metadata?.tenant_id;
+  if (!tenantId) {
+    logger.error('Subscription webhook missing tenant_id');
+    return;
   }
 
-  private async handleSubscriptionDisable(data: any): Promise<void> {
-    // Handle subscription cancellation logic
-    logger.info('Subscription disabled', { data });
+  const subscriptionId = data.subscription_code;
+  const start = new Date();
+  const end = new Date();
+  end.setMonth(end.getMonth() + 1); // 1-month billing period
+
+  await this.paymentRepo.createSubscription({
+    tenant_id: tenantId,
+    provider_subscription_id: subscriptionId,
+    plan: 'premium',
+    current_period_start: start,
+    current_period_end: end,
+  });
+
+  await this.tenantService.updateTenant(tenantId, {
+    plan: 'premium',
+    payment_status: 'active',
+  });
+
+  logger.info('Subscription activated for tenant', { tenantId, subscriptionId });
+}
+
+private async handleSubscriptionDisable(data: any): Promise<void> {
+  const subscriptionId = data.subscription_code;
+  await this.paymentRepo.updateSubscriptionStatus(subscriptionId, 'cancelled');
+  const tenantId = data.customer?.metadata?.tenant_id;
+
+  if (tenantId) {
+    await this.tenantService.updateTenant(tenantId, {
+      plan: 'free',
+      payment_status: 'expired',
+    });
   }
+
+  logger.info('Subscription cancelled', { subscriptionId });
+}
 
   private async makePaystackRequest<T>(
     method: 'GET' | 'POST',

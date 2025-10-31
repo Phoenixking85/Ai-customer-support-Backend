@@ -47,6 +47,7 @@ export const createSubscription = asyncHandler(async (req: AuthenticatedRequest,
       email: tenant.email,
       plan: 'premium',
       amount: config.plans.premium.price,
+        plan_code: config.paystack.planId,
     };
 
     // For now, we'll use the payment initialization flow
