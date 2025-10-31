@@ -1,13 +1,17 @@
 import express from 'express';
-import cors from 'cors';
+import bodyParser from 'body-parser';
 import helmet from 'helmet';
+import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import { handleWebhook } from './api/v1/controllers/payment.controller';
 import { v1Routes } from './api/v1/routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
 
-
 const app = express();
+
+// CRITICAL: Trust proxy for rate limiting and IP detection behind proxies
+app.set('trust proxy', true);
 
 // Security middleware
 app.use(helmet());
@@ -21,24 +25,27 @@ app.use(cors({
 }));
 
 // Rate limiting
-const limiter = rateLimit({
+app.use(rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // limit each IP to 1000 requests per windowMs
-  message: {
-    error: 'Too many requests',
-    message: 'Rate limit exceeded. Please try again later.',
-  },
+  max: 1000,
+  message: { error: 'Too many requests', message: 'Rate limit exceeded.' },
   standardHeaders: true,
   legacyHeaders: false,
-});
+}));
 
-app.use(limiter);
+// ⚠️ CRITICAL: Register webhook route BEFORE express.json()
+// This route MUST use raw body parser to preserve exact bytes for signature verification
+app.post(
+  '/api/v1/payments/webhook',
+  bodyParser.raw({ type: 'application/json' }),
+  handleWebhook
+);
 
-// Body parsing middleware
+// NOW apply JSON parser for all other routes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging
+// Request logging middleware
 app.use((req, res, next) => {
   logger.info('Incoming request', {
     method: req.method,
@@ -48,9 +55,6 @@ app.use((req, res, next) => {
   });
   next();
 });
-
-// API routes
-app.use('/api/v1', v1Routes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -62,7 +66,10 @@ app.get('/', (req, res) => {
   });
 });
 
-// Error handling
+// API routes (includes all routes EXCEPT webhook which is already registered)
+app.use('/api/v1', v1Routes);
+
+// Error handling (must be last)
 app.use(notFoundHandler);
 app.use(errorHandler);
 

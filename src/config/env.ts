@@ -28,7 +28,7 @@ interface Config {
   paystack: {
     secretKey: string;
     publicKey: string;
-    webhookSecret: string;
+ 
     planId: string;
 
   };
@@ -94,7 +94,6 @@ export const config: Config = {
   paystack: {
     secretKey: process.env.PAYSTACK_SECRET_KEY || '',
     publicKey: process.env.PAYSTACK_PUBLIC_KEY || '',
-    webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET || '',
     planId: process.env.PAYSTACK_PLAN_ID || ''
   },
 

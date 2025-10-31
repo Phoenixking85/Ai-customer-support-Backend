@@ -162,33 +162,31 @@ export class PaymentService {
     }
   }
 
-  async handleWebhook(payload: any, signature: string): Promise<void> {
-    // Verify webhook signature
-    const expectedSignature = require('crypto')
-      .createHmac('sha512', config.paystack.webhookSecret)
-      .update(JSON.stringify(payload))
-      .digest('hex');
+ async handleWebhook(payload: any, signature: string, rawBody: string): Promise<void> {
+  const expectedSignature = require("crypto")
+    .createHmac("sha512", config.paystack.secretKey)
+    .update(rawBody)
+    .digest("hex");
 
-    if (signature !== expectedSignature) {
-      throw new Error('Invalid webhook signature');
-    }
-
-    const { event, data } = payload;
-
-    switch (event) {
-      case 'charge.success':
-        await this.handleSuccessfulCharge(data);
-        break;
-      case 'subscription.create':
-        await this.handleSubscriptionCreate(data);
-        break;
-      case 'subscription.disable':
-        await this.handleSubscriptionDisable(data);
-        break;
-      default:
-        logger.info('Unhandled webhook event', { event });
-    }
+  if (signature !== expectedSignature) {
+    throw new Error("Invalid webhook signature");
   }
+
+  const { event, data } = payload;
+  switch (event) {
+    case "charge.success":
+      await this.handleSuccessfulCharge(data);
+      break;
+    case "subscription.create":
+      await this.handleSubscriptionCreate(data);
+      break;
+    case "subscription.disable":
+      await this.handleSubscriptionDisable(data);
+      break;
+    default:
+      logger.info("Unhandled webhook event", { event });
+  }
+}
 
   private async handleSuccessfulCharge(data: any): Promise<void> {
     const reference = data.reference;
