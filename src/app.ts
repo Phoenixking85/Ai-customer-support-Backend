@@ -3,10 +3,10 @@ import bodyParser from 'body-parser';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
-import { handleWebhook } from './api/v1/controllers/payment.controller';
 import { v1Routes } from './api/v1/routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
+import { handleWebhook } from './api/v1/controllers/subscription.controller';
 
 const app = express();
 
@@ -36,7 +36,7 @@ app.use(rateLimit({
 // ⚠️ CRITICAL: Register webhook route BEFORE express.json()
 // This route MUST use raw body parser to preserve exact bytes for signature verification
 app.post(
-  '/api/v1/payments/webhook',
+  '/api/v1/subscriptions/webhook',
   bodyParser.raw({ type: 'application/json' }),
   handleWebhook
 );

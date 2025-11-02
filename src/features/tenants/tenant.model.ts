@@ -9,7 +9,7 @@ export interface CreateTenantData {
 export interface UpdateTenantData {
   name?: string;
   plan?: 'free' | 'premium';
-  payment_status?: 'pending' | 'active' | 'suspended' | 'expired';
+  payment_status?: 'pending' | 'active' | 'suspended' | 'expired'|'payment_failed';
   is_verified?: boolean;
   supabase_user_id?: string;
   trial_ends_at?: Date;

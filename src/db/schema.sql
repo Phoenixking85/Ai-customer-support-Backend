@@ -163,3 +163,5 @@ BEGIN
   DELETE FROM embeddings WHERE expires_at IS NOT NULL AND expires_at < CURRENT_TIMESTAMP;
 END;
 $$ LANGUAGE plpgsql;
+
+

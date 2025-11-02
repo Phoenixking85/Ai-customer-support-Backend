@@ -4,7 +4,7 @@ import { chatRoutes } from './chat.routes';
 import { kbRoutes } from './kb.routes';
 import { analyticsRoutes } from './analytics.routes';
 import { adminRoutes } from './admin.routes';
-import { paymentRoutes } from './payment.routes';
+
 import { subscriptionRoutes } from './subscription.routes';
 import { healthRoutes } from './health.routes';
 
@@ -15,7 +15,6 @@ router.use('/chat', chatRoutes);
 router.use('/kb', kbRoutes);
 router.use('/analytics', analyticsRoutes);
 router.use('/admin', adminRoutes);
-router.use('/payments', paymentRoutes);
 router.use('/subscriptions', subscriptionRoutes);
 router.use('/health', healthRoutes);
 
