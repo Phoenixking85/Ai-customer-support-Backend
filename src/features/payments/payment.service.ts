@@ -28,9 +28,8 @@ export class PaymentService {
     const tenant = await this.tenantService.getTenantById(tenantId);
     if (!tenant) throw new Error('Tenant not found');
 
-    const planCode = config.paystack.planId; // Your Paystack plan code
+    const planCode = config.paystack.planId; 
 
-    // CRITICAL: Include tenant_id in metadata for webhook processing
     const subscriptionData = {
       customer: tenant.email,
       plan: planCode,

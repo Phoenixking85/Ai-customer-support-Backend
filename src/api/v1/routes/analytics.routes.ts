@@ -6,4 +6,4 @@ const router = Router();
 
 router.get('/usage', apiKeyAuth, getUsageStats);
 
-export { router as analyticsRoutes }; 
+export { router as analyticsRoutes };   
