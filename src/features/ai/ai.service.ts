@@ -18,14 +18,13 @@ export class AIService {
 
     let confidence = 0;
     if (topChunks.length > 0) {
-      const scores = topChunks.map(c => c.score);      
-      confidence = Math.max(...scores);               
+      const scores = topChunks.map(c => c.score);
+      confidence = Math.max(...scores);
     }
 
-    
     const highScores = topChunks.filter(c => c.score >= 0.7).length;
     if (highScores > 1) {
-      confidence = Math.min(confidence + 0.05, 1);    
+      confidence = Math.min(confidence + 0.05, 1);
     }
 
     const context = topChunks.map(c => c.chunk_text).join('\n\n');

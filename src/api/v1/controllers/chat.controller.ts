@@ -12,7 +12,6 @@ import { asyncHandler } from '../../../middleware/errorHandler';
 import { config } from '../../../config/env';
 import { Helpers } from '../../../utils/helpers';
 
-// Initialize services
 const pgVectorClient = new PgVectorClient();
 const vectorRepo = new VectorRepository(pgVectorClient);
 const vectorService = new VectorService(vectorRepo, geminiClient);

@@ -12,7 +12,6 @@ const apiKeyService = new ApiKeyService(new ApiKeyRepository());
 const JWT_SECRET = config.jwt.secret;
 const JWT_EXPIRES_IN = config.jwt.expiresIn;
 
-
 export const requestMagicLink = asyncHandler(async (req: Request, res: Response) => {
   const { email, name } = req.body;
 
@@ -34,7 +33,6 @@ export const requestMagicLink = asyncHandler(async (req: Request, res: Response)
 
   res.json({ message: 'Magic link sent successfully. Please check your email.' });
 });
-
 
 export const supabaseLogin = asyncHandler(async (req: Request, res: Response) => {
   const { access_token } = req.body;
@@ -74,7 +72,6 @@ export const supabaseLogin = asyncHandler(async (req: Request, res: Response) =>
   });
 });
 
-
 export const generateApiKey = asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.user?.tenantId;
   if (!tenantId) return res.status(401).json({ error: 'Unauthorized' });
@@ -89,7 +86,6 @@ export const generateApiKey = asyncHandler(async (req: Request, res: Response) =
     tenant,
   });
 });
-
 
 export const getApiKey = asyncHandler(async (req: Request, res: Response) => {
   const tenantId = req.user?.tenantId;

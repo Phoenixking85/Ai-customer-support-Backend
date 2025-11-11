@@ -15,7 +15,6 @@ export function errorHandler(
   const statusCode = error.statusCode || 500;
   const isOperational = error.isOperational || false;
 
-  // Log error
   logger.error('Request error', {
     error: error.message,
     stack: error.stack,
@@ -26,8 +25,7 @@ export function errorHandler(
     userAgent: req.get('User-Agent'),
   });
 
-  // Don't expose internal errors in production
-  const message = isOperational || statusCode < 500 
+  const message = isOperational || statusCode < 500
     ? error.message 
     : 'Internal server error';
 

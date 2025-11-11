@@ -41,7 +41,6 @@ export const uploadDocument = asyncHandler(async (req: AuthenticatedRequest, res
     return;
   }
 
-  // Check quota
 const quotaInfo = (req as any).quotaInfo;
   if (!quotaInfo.can_upload_document) {
     const message = plan === 'free' 

@@ -35,7 +35,7 @@ export class Helpers {
     let currentTokenCount = 0;
 
     for (const word of words) {
-      const wordTokens = Math.ceil(word.length / 4); // Rough token estimation
+      const wordTokens = Math.ceil(word.length / 4);
       
       if (currentTokenCount + wordTokens > maxTokens && currentChunk.length > 0) {
         chunks.push(currentChunk.join(' '));
@@ -55,7 +55,6 @@ export class Helpers {
   }
 
   static calculateTokens(text: string): number {
-    // Rough estimation: 1 token ≈ 4 characters for English text
     return Math.ceil(text.length / 4);
   }
 }

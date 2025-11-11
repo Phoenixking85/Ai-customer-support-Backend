@@ -13,10 +13,8 @@ const app = express();
 // CRITICAL: Trust proxy for rate limiting and IP detection behind proxies
 app.set('trust proxy', true);
 
-// Security middleware
 app.use(helmet());
 
-// CORS configuration
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
   credentials: true,
@@ -24,7 +22,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
 }));
 
-// Rate limiting
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 1000,
@@ -45,7 +42,6 @@ app.post(
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging middleware
 app.use((req, res, next) => {
   logger.info('Incoming request', {
     method: req.method,
@@ -56,7 +52,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Root endpoint
 app.get('/', (req, res) => {
   res.json({
     message: 'AI Customer Support Backend API',
@@ -69,7 +64,6 @@ app.get('/', (req, res) => {
 // API routes (includes all routes EXCEPT webhook which is already registered)
 app.use('/api/v1', v1Routes);
 
-// Error handling (must be last)
 app.use(notFoundHandler);
 app.use(errorHandler);
 

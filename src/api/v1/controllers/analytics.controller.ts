@@ -35,8 +35,7 @@ export const getUsageStats = asyncHandler(async (req: AuthenticatedRequest, res:
   }
 
   const stats = await analyticsService.getTenantUsageStats(tenantId, days);
-  const quotaInfo = (req as any).quotaInfo; 
-
+  const quotaInfo = (req as any).quotaInfo;
 
   res.json({
     usage_stats: stats,

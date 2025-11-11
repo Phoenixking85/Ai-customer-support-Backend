@@ -27,7 +27,6 @@ export async function apiKeyAuth(
       return;
     }
 
-    // Find API key and tenant
     const query = `
       SELECT 
         ak.id,
@@ -45,7 +44,6 @@ export async function apiKeyAuth(
     const result = await db.query(query);
     let validApiKey = null;
 
-    // Check each active API key
     for (const row of result.rows) {
       const isValid = await Helpers.verifyApiKey(apiKey, row.key_hash);
       if (isValid) {
@@ -62,7 +60,6 @@ export async function apiKeyAuth(
       return;
     }
 
-    // Check if trial expired for free plans
     if (validApiKey.plan === 'free' && validApiKey.trial_ends_at) {
       const trialExpired = new Date() > new Date(validApiKey.trial_ends_at);
       if (trialExpired) {
@@ -74,7 +71,6 @@ export async function apiKeyAuth(
       }
     }
 
-    // Check if account is suspended
     if (validApiKey.payment_status === 'suspended') {
       res.status(403).json({
         error: 'Account suspended',
@@ -83,13 +79,11 @@ export async function apiKeyAuth(
       return;
     }
 
-    // Update last_used_at
     await db.query(
       'UPDATE api_keys SET last_used_at = CURRENT_TIMESTAMP WHERE id = $1',
       [validApiKey.id]
     );
 
-    // Attach tenant info to request
     req.tenant = {
       id: validApiKey.tenant_id,
       plan: validApiKey.plan,

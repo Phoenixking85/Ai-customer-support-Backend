@@ -30,7 +30,6 @@ interface Config {
     publicKey: string;
  
     planId: string;
-
   };
   jwt: {
     secret: string;
@@ -63,7 +62,6 @@ interface Config {
   };
 }
 
-// ✅ Load env + defaults
 export const config: Config = {
   port: parseInt(process.env.PORT || '3000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -111,14 +109,14 @@ export const config: Config = {
       messageLimit: 200,
       tokenLimit: 1000,
       documentLimit: 1,
-      documentSizeLimit: 3 * 1024 * 1024, // 3MB
+      documentSizeLimit: 3 * 1024 * 1024,
       durationDays: 14,
     },
     premium: {
       messageLimit: 2000,
       tokenLimit: 2500,
       documentLimit: 5,
-      documentSizeLimit: 100 * 1024 * 1024, // 100MB
+      documentSizeLimit: 100 * 1024 * 1024,
       price: 38000,
       currency: 'GHS',
     },
@@ -130,7 +128,6 @@ export const config: Config = {
     redirectUrl: process.env.SUPABASE_REDIRECT_URL || 'http://localhost:8080/',
   },
 };
-
 
 if (!config.supabase.url || !config.supabase.serviceRoleKey) {
   throw new Error('❌ Missing Supabase environment variables');

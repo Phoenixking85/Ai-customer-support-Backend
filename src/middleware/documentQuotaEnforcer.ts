@@ -22,7 +22,6 @@ export async function documentQuotaEnforcer(
       ? config.plans.premium
       : config.plans.free;
 
-    // === Document quota ===
     const documentsUsed = await redisClient.getQuota(tenantId, 'documents');
     const canUploadDocument = documentsUsed < planLimits.documentLimit;
 
@@ -43,7 +42,6 @@ export async function documentQuotaEnforcer(
       return;
     }
 
-    // Attach quota info to request
     (req as any).quotaInfo = {
       documents_used: documentsUsed,
       documents_limit: planLimits.documentLimit,

@@ -28,27 +28,22 @@ export class EmbeddingJobProcessor {
     try {
       logger.info('Starting embedding job', { documentId, tenantId });
 
-      // Update document status
       await this.documentRepo.update(documentId, {
         processing_status: 'processing',
       });
 
-      // Get document
       const document = await this.documentRepo.findById(documentId);
       if (!document) {
         throw new Error('Document not found');
       }
 
-      // Get tenant to check plan
       const tenant = await this.tenantService.getTenantById(tenantId);
       if (!tenant) {
         throw new Error('Tenant not found');
       }
 
-      // Download document content
       const fileBuffer = await this.documentService.downloadDocument(documentId);
 
-      // Extract text based on file type
       let text: string;
       switch (document.mime_type) {
         case 'application/pdf':
@@ -67,7 +62,6 @@ export class EmbeddingJobProcessor {
           throw new Error(`Unsupported file type: ${document.mime_type}`);
       }
 
-      // Clean and chunk text
       const cleanedText = this.cleanText(text);
       const chunks = Helpers.chunkText(cleanedText, 400);
 
@@ -75,12 +69,10 @@ export class EmbeddingJobProcessor {
         throw new Error('No text content found in document');
       }
 
-      // Set expiry for free plans
-      const expiresAt = tenant.plan === 'free' 
+      const expiresAt = tenant.plan === 'free'
         ? new Date(Date.now() + config.plans.free.durationDays * 24 * 60 * 60 * 1000)
         : undefined;
 
-      // Create embeddings for each chunk
       const embeddingPromises = chunks.map(async (chunk, index) => {
         await this.vectorService.addEmbedding(
           tenantId,
@@ -93,7 +85,6 @@ export class EmbeddingJobProcessor {
 
       await Promise.all(embeddingPromises);
 
-      // Update document status
       await this.documentRepo.update(documentId, {
         processing_status: 'completed',
         chunk_count: chunks.length,
@@ -112,7 +103,6 @@ export class EmbeddingJobProcessor {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      // Update document status to failed
       await this.documentRepo.update(documentId, {
         processing_status: 'failed',
       });
@@ -132,14 +122,13 @@ export class EmbeddingJobProcessor {
   }
 
   private async extractDocText(buffer: Buffer): Promise<string> {
- 
     return buffer.toString('utf-8');
   }
 
   private cleanText(text: string): string {
     return text
-      .replace(/\s+/g, ' ') 
-      .replace(/[\r\n]+/g, '\n') 
+      .replace(/\s+/g, ' ')
+      .replace(/[\r\n]+/g, '\n')
       .trim();
   }
 }

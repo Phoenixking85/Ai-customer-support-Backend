@@ -39,7 +39,6 @@ class WorkerManager {
   }
 
   private setupWorkers() {
-    
     this.embeddingWorker = new Worker(
       'embedding-queue',
       async (job: Job<EmbeddingJobData>) => {
@@ -47,13 +46,12 @@ class WorkerManager {
       },
       {
         connection: redisClient.getConnection().connection,
-        concurrency: 3, 
-        removeOnComplete: { count: 10 }, 
-        removeOnFail: { count: 50 }, 
+        concurrency: 3,
+        removeOnComplete: { count: 10 },
+        removeOnFail: { count: 50 },
       }
     );
 
-    // Worker event handlers
     this.embeddingWorker.on('completed', (job) => {
       logger.info('Embedding job completed', {
         jobId: job.id,

@@ -42,11 +42,9 @@ export class GeminiClient {
         parts: [{ text: m.content }],
       }));
 
-     
-      const lastMessage = chatMessages[chatMessages.length - 1];
+            const lastMessage = chatMessages[chatMessages.length - 1];
       const finalUserMessage = systemContext + lastMessage.content;
 
-  
       let promptTokens = 0;
       try {
         const countResult = await model.countTokens({
@@ -61,12 +59,10 @@ export class GeminiClient {
         promptTokens = countResult.totalTokens;
         logger.info(`Prompt tokens: ${promptTokens}`);
       } catch (error) {
-    
         promptTokens = Math.ceil(finalUserMessage.length / 4);
         logger.warn("Token counting failed, using estimation", error);
       }
 
-     
       const outputTokens = Math.max(100, maxTokens);
 
       const chat = model.startChat({
@@ -90,7 +86,6 @@ export class GeminiClient {
         
         logger.info(`Usage metadata - Prompt: ${promptTokens}, Completion: ${completionTokens}`);
       } else {
-        // Fallback estimation
         completionTokens = Math.ceil(content.length / 4);
       }
 
@@ -101,7 +96,6 @@ export class GeminiClient {
       };
     } catch (error: any) {
       logger.error("Gemini chat completion error:", error);
-      
 
       if (error.message) {
         logger.error("Error message:", error.message);

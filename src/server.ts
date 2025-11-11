@@ -12,13 +12,11 @@ async function startServer() {
     await db.query('SELECT 1');
     logger.info('Connected to PostgreSQL');
 
-    // Start server
     const server = app.listen(config.port, () => {
       logger.info(`Server running on port ${config.port} in ${config.nodeEnv} mode`);
       logger.info(`Health check available at http://localhost:${config.port}/api/v1/health`);
     });
 
-    // Graceful shutdown
     const gracefulShutdown = async (signal: string) => {
       logger.info(`${signal} received. Starting graceful shutdown...`);
       

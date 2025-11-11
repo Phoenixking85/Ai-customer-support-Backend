@@ -22,7 +22,6 @@ export async function messageQuotaEnforcer(
       ? config.plans.premium
       : config.plans.free;
 
-    // === Messages quota ===
     const messagesUsed = plan === 'premium'
       ? await redisClient.getMonthlyQuota(tenantId, 'messages')
       : await redisClient.getQuota(tenantId, 'messages');
@@ -44,14 +43,12 @@ export async function messageQuotaEnforcer(
       return;
     }
 
-    // Increment message count
     if (plan === 'premium') {
       await redisClient.incrementMonthlyQuota(tenantId, 'messages');
     } else {
       await redisClient.incrementQuota(tenantId, 'messages');
     }
 
-    // Attach quota info to request
     (req as any).quotaInfo = {
       messages_used: messagesUsed + 1,
       messages_limit: planLimits.messageLimit,

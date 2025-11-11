@@ -10,7 +10,6 @@ const paymentRepo = new PaymentRepository();
 const tenantService = new TenantService();
 const paymentService = new PaymentService(paymentRepo, tenantService);
 
-// Create a new subscription
 export const createSubscription = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const tenantId = req.tenant!.id;
@@ -24,7 +23,6 @@ export const createSubscription = asyncHandler(
       return;
     }
 
-    // Check if tenant is already on premium
     if (tenant.plan === 'premium') {
       res.status(409).json({
         error: 'Already subscribed',
@@ -33,7 +31,6 @@ export const createSubscription = asyncHandler(
       return;
     }
 
-    // Check if there's already an active subscription
     const activeSubscription = await paymentRepo.findActiveSubscription(tenantId);
     if (activeSubscription) {
       res.status(409).json({
@@ -60,7 +57,6 @@ export const createSubscription = asyncHandler(
   }
 );
 
-// Cancel existing subscription
 export const cancelSubscription = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const tenantId = req.tenant!.id;
@@ -90,7 +86,6 @@ export const cancelSubscription = asyncHandler(
   }
 );
 
-// Get current subscription
 export const getSubscription = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const tenantId = req.tenant!.id;
@@ -118,7 +113,6 @@ export const getSubscription = asyncHandler(
   }
 );
 
-
 export const getSubscriptionHistory = asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     const tenantId = req.tenant!.id;
@@ -138,7 +132,6 @@ export const getSubscriptionHistory = asyncHandler(
   }
 );
 
-// Handle Paystack webhooks
 export const handleWebhook = asyncHandler(async (req: Request, res: Response) => {
   const signature = req.headers['x-paystack-signature'] as string;
 
