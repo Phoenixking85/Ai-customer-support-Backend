@@ -2,9 +2,6 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "vector";
 
--- =========================
--- ✅ TENANTS TABLE
--- =========================
 CREATE TABLE tenants (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(255) NOT NULL,
@@ -24,9 +21,6 @@ CREATE TABLE tenants (
 CREATE INDEX IF NOT EXISTS idx_tenants_email ON tenants (email);
 CREATE INDEX IF NOT EXISTS idx_tenants_supabase_user_id ON tenants (supabase_user_id);
 
--- =========================
--- ✅ ADMINS TABLE
--- =========================
 CREATE TABLE admins (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email VARCHAR(255) UNIQUE NOT NULL,
@@ -155,9 +149,6 @@ CREATE TRIGGER update_subscriptions_updated_at
 BEFORE UPDATE ON subscriptions 
 FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- =========================
--- ✅ CLEANUP FUNCTION
--- =========================
 CREATE OR REPLACE FUNCTION cleanup_expired_embeddings() RETURNS VOID AS $$
 BEGIN
   DELETE FROM embeddings WHERE expires_at IS NOT NULL AND expires_at < CURRENT_TIMESTAMP;
