@@ -10,7 +10,7 @@ import { handleWebhook } from './api/v1/controllers/subscription.controller';
 
 const app = express();
 
-// CRITICAL: Trust proxy for rate limiting and IP detection behind proxies
+
 app.set('trust proxy', true);
 
 app.use(helmet());
@@ -30,15 +30,13 @@ app.use(rateLimit({
   legacyHeaders: false,
 }));
 
-// ⚠️ CRITICAL: Register webhook route BEFORE express.json()
-// This route MUST use raw body parser to preserve exact bytes for signature verification
+
 app.post(
   '/api/v1/subscriptions/webhook',
   bodyParser.raw({ type: 'application/json' }),
   handleWebhook
 );
 
-// NOW apply JSON parser for all other routes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -61,7 +59,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// API routes (includes all routes EXCEPT webhook which is already registered)
 app.use('/api/v1', v1Routes);
 
 app.use(notFoundHandler);
